@@ -21,13 +21,13 @@ export interface ApiUser {
 }
 
 export interface ApiLinkStat {
-  linkId: number
+  linkId: string
   totalClicks: number
   lastClickedAt: string | null
 }
 
 export interface ApiLink {
-  id: number
+  id: string
   code: string
   originalUrl: string
   userId: number | null
@@ -105,12 +105,13 @@ export async function apiGetLinks(): Promise<ApiResponse<ApiLink[]>> {
   return apiFetch<ApiLink[]>('/links')
 }
 
-export async function apiGetLink(id: number): Promise<ApiResponse<ApiLink>> {
+export async function apiGetLink(id: string): Promise<ApiResponse<ApiLink>> {
   return apiFetch<ApiLink>(`/links/${id}`)
 }
 
 export interface CreateLinkPayload {
   url: string
+  code?: string
   title?: string
   description?: string
   expiredAt?: string
@@ -126,7 +127,8 @@ export async function apiCreateLink(
 }
 
 export interface UpdateLinkPayload {
-  originalUrl?: string
+  url?: string
+  code?: string
   isActive?: boolean
   title?: string
   description?: string
@@ -134,7 +136,7 @@ export interface UpdateLinkPayload {
 }
 
 export async function apiUpdateLink(
-  id: number,
+  id: string,
   payload: UpdateLinkPayload
 ): Promise<ApiResponse<ApiLink>> {
   return apiFetch<ApiLink>(`/links/${id}`, {
@@ -143,10 +145,34 @@ export async function apiUpdateLink(
   })
 }
 
-export async function apiDeleteLink(id: number): Promise<ApiResponse<null>> {
+export async function apiDeleteLink(id: string): Promise<ApiResponse<null>> {
   return apiFetch<null>(`/links/${id}`, {
     method: 'DELETE',
   })
+}
+
+// ------------------------------------------------------------------
+// Stats endpoints
+// ------------------------------------------------------------------
+
+export interface GlobalOverviewStats {
+  totalLinks: number
+  totalClicks: number
+  uptimePercentage: number
+}
+
+export interface LinkSpecificStats {
+  totalClicks: number
+  topCountries: { name: string; count: number }[]
+  topBrowsers: { name: string; count: number }[]
+}
+
+export async function apiGetGlobalStats(): Promise<ApiResponse<GlobalOverviewStats>> {
+  return apiFetch<GlobalOverviewStats>('/stats/overview')
+}
+
+export async function apiGetLinkStats(id: string): Promise<ApiResponse<LinkSpecificStats>> {
+  return apiFetch<LinkSpecificStats>(`/links/${id}/stats`)
 }
 
 // ------------------------------------------------------------------

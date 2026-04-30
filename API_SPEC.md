@@ -4,7 +4,7 @@ Dokumen ini merangkum endpoint API backend untuk integrasi frontend.
 
 ## Base URL
 
-- Development: `http://localhost:3000`
+- Development: `http://localhost:4123` (atau sesuai konfigurasi `.env`)
 
 ## Format Respons
 
@@ -30,7 +30,7 @@ Dokumen ini merangkum endpoint API backend untuk integrasi frontend.
 
 ## Autentikasi
 
-Endpoint yang berawalan `/links` membutuhkan JWT token.
+Endpoint yang berawalan `/links` (kecuali public redirect) membutuhkan JWT token.
 
 Header yang harus dikirim:
 
@@ -118,7 +118,7 @@ Token didapat dari endpoint login.
 
 ## Link Endpoints
 
-Semua endpoint berikut membutuhkan JWT token, kecuali redirect publik.
+Semua endpoint berikut membutuhkan JWT token.
 
 ### 1. Create Link
 
@@ -129,6 +129,7 @@ Semua endpoint berikut membutuhkan JWT token, kecuali redirect publik.
 | Field       | Tipe              | Wajib | Keterangan              |
 | ----------- | ----------------- | ----- | ----------------------- |
 | url         | string            | ya    | URL tujuan, harus valid |
+| code        | string            | tidak | Custom shortcode        |
 | title       | string            | tidak | Judul link              |
 | description | string            | tidak | Deskripsi link          |
 | expiredAt   | string (ISO date) | tidak | Tanggal expired         |
@@ -137,16 +138,17 @@ Semua endpoint berikut membutuhkan JWT token, kecuali redirect publik.
 
 ```json
 {
-  "url": "https://example.com/landing-page",
+  "url": "example.com/landing-page",
+  "code": "promo-2026",
   "title": "Landing Page",
-  "description": "Halaman promo",
-  "expiredAt": "2026-05-30T00:00:00.000Z"
+  "description": "Halaman promo"
 }
 ```
 
 #### Catatan
 
-- `code` shortlink dibuat otomatis oleh server.
+- Jika `code` kosong, shortlink dibuat otomatis oleh server.
+- URL akan otomatis ditambahkan awalan `http://` jika dikirimkan tanpa protokol.
 - Respons menyertakan `stats` dengan `totalClicks`.
 
 ### 2. Get All Links
@@ -163,9 +165,9 @@ Mengambil semua link milik user yang sedang login.
   "message": "Berhasil mengambil semua link",
   "data": [
     {
-      "id": 1,
-      "code": "aB12Cd",
-      "originalUrl": "https://example.com/landing-page",
+      "id": "uuid-v4-string",
+      "code": "promo-2026",
+      "originalUrl": "http://example.com/landing-page",
       "userId": 1,
       "title": "Landing Page",
       "description": "Halaman promo",
@@ -173,7 +175,7 @@ Mengambil semua link milik user yang sedang login.
       "expiredAt": null,
       "isActive": true,
       "stats": {
-        "linkId": 1,
+        "linkId": "uuid-v4-string",
         "totalClicks": 0,
         "lastClickedAt": null
       }
@@ -196,21 +198,66 @@ Hanya bisa mengakses link milik user sendiri.
 
 | Field       | Tipe              | Wajib | Keterangan           |
 | ----------- | ----------------- | ----- | -------------------- |
-| originalUrl | string            | tidak | URL tujuan baru      |
+| url         | string            | tidak | URL tujuan baru      |
+| code        | string            | tidak | Custom code baru     |
 | isActive    | boolean           | tidak | Aktif atau nonaktif  |
 | title       | string            | tidak | Judul baru           |
 | description | string            | tidak | Deskripsi baru       |
 | expiredAt   | string (ISO date) | tidak | Tanggal expired baru |
-
-#### Catatan Penting
-
-- Nama field update URL adalah `originalUrl`, bukan `url`.
 
 ### 5. Delete Link
 
 `DELETE /links/:id`
 
 Menghapus link milik user sendiri.
+
+## Stats Endpoints
+
+### 1. Global Overview Stats (Publik)
+
+`GET /stats/overview`
+
+**Tidak butuh token.** Berguna untuk ditampilkan pada landing page.
+
+#### Contoh Response
+
+```json
+{
+  "success": true,
+  "message": "Berhasil mengambil statistik publik",
+  "data": {
+    "totalLinks": 1520,
+    "totalClicks": 54200,
+    "uptimePercentage": 99.9
+  }
+}
+```
+
+### 2. Link Specific Stats
+
+`GET /links/:id/stats`
+
+**Butuh token.** Hanya pemilik link yang dapat mengakses data ini.
+
+#### Contoh Response
+
+```json
+{
+  "success": true,
+  "message": "Berhasil mengambil statistik link",
+  "data": {
+    "totalClicks": 120,
+    "topCountries": [
+      { "name": "ID", "count": 100 },
+      { "name": "US", "count": 20 }
+    ],
+    "topBrowsers": [
+      { "name": "Chrome", "count": 80 },
+      { "name": "Firefox", "count": 40 }
+    ]
+  }
+}
+```
 
 ## Public Redirect
 
@@ -223,7 +270,7 @@ Endpoint publik ini tidak membutuhkan login.
 #### Perilaku
 
 - Jika `code` valid, server akan redirect ke `originalUrl`.
-- Server juga mencatat klik secara background.
+- Server juga mencatat klik secara background, mendeteksi asal negara, dan merekam browser (userAgent).
 - Jika link tidak ditemukan, nonaktif, atau expired, server mengembalikan JSON error.
 
 #### Contoh Error
@@ -243,12 +290,9 @@ Endpoint publik ini tidak membutuhkan login.
   - `password` minimal 6 karakter.
 - Login:
   - `email` harus valid.
-- Create link:
-  - `url` wajib valid.
-  - `expiredAt` harus format tanggal valid jika diisi.
-- Update link:
-  - `originalUrl` wajib valid jika diisi.
-  - `isActive` harus boolean.
+- Create link / Update Link:
+  - `url` divalidasi. Jika tidak ada http/https, backend otomatis menyisipkan http://.
+  - `code` hanya boleh mengandung huruf, angka, strip (-), dan underscore (_).
   - `expiredAt` harus format tanggal valid jika diisi.
 
 ## Model Data Penting
@@ -266,7 +310,7 @@ Endpoint publik ini tidak membutuhkan login.
 
 | Field       | Tipe           |
 | ----------- | -------------- |
-| id          | number         |
+| id          | string (UUID)  |
 | code        | string         |
 | originalUrl | string         |
 | userId      | number \| null |
@@ -280,24 +324,6 @@ Endpoint publik ini tidak membutuhkan login.
 
 | Field         | Tipe           |
 | ------------- | -------------- |
-| linkId        | number         |
+| linkId        | string (UUID)  |
 | totalClicks   | number         |
 | lastClickedAt | string \| null |
-
-## Frontend Flow
-
-1. User register atau login.
-2. Simpan `accessToken` dari login.
-3. Kirim token di header `Authorization` untuk semua request `/links`.
-4. Tampilkan daftar link dari `GET /links`.
-5. Saat create link, gunakan `code` dari response untuk menampilkan URL pendek.
-6. Untuk preview atau edit, ambil detail dari `GET /links/:id`.
-7. Untuk akses publik, arahkan user ke `/:code`.
-
-## Error yang Umum
-
-- `401 Unauthorized`: token tidak ada, token salah, atau user tidak ditemukan.
-- `403 Forbidden`: user mencoba akses link milik user lain.
-- `404 Not Found`: link tidak ditemukan.
-- `410 Gone`: link sudah expired.
-- `409 Conflict`: email sudah digunakan saat register.

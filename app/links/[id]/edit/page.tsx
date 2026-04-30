@@ -17,15 +17,16 @@ export default function EditLinkPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
-  const linkId = Number(id)
 
   const [link, setLink] = useState<ApiLink | null>(null)
   const [url, setUrl] = useState('')
+  const [code, setCode] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [expiredAt, setExpiredAt] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [urlError, setUrlError] = useState('')
+  const [codeError, setCodeError] = useState('')
   const [apiError, setApiError] = useState('')
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -39,13 +40,13 @@ export default function EditLinkPage({
       return
     }
     fetchLink()
-  }, [linkId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchLink() {
     setLoading(true)
     setApiError('')
     try {
-      const res = await apiGetLink(linkId)
+      const res = await apiGetLink(id)
       if (!res.success || !res.data) {
         setApiError(res.message || 'Link tidak ditemukan.')
         return
@@ -53,6 +54,7 @@ export default function EditLinkPage({
       const l = res.data
       setLink(l)
       setUrl(l.originalUrl)
+      setCode(l.code)
       setTitle(l.title ?? '')
       setDescription(l.description ?? '')
       setExpiredAt(l.expiredAt ? l.expiredAt.split('T')[0] : '')
@@ -76,6 +78,12 @@ export default function EditLinkPage({
       return false
     }
     setUrlError('')
+
+    if (code.trim() && !/^[a-zA-Z0-9_-]+$/.test(code.trim())) {
+      setCodeError('Hanya boleh huruf, angka, tanda hubung (-), dan garis bawah (_).')
+      return false
+    }
+    setCodeError('')
     return true
   }
 
@@ -87,16 +95,17 @@ export default function EditLinkPage({
     setApiError('')
     try {
       const payload: Parameters<typeof apiUpdateLink>[1] = {
-        originalUrl: url,
+        url,
         isActive,
       }
+      if (code.trim()) payload.code = code.trim()
       if (title !== undefined) payload.title = title
       if (description !== undefined) payload.description = description
       payload.expiredAt = expiredAt
         ? new Date(expiredAt).toISOString()
         : null
 
-      const res = await apiUpdateLink(linkId, payload)
+      const res = await apiUpdateLink(id, payload)
       if (!res.success) {
         setApiError(res.message || 'Gagal menyimpan perubahan.')
         return
@@ -115,7 +124,7 @@ export default function EditLinkPage({
     setDeleting(true)
     setApiError('')
     try {
-      const res = await apiDeleteLink(linkId)
+      const res = await apiDeleteLink(id)
       if (!res.success) {
         setApiError(res.message || 'Gagal menghapus link.')
         setDeleting(false)
@@ -261,6 +270,17 @@ export default function EditLinkPage({
                   ? 'URL lengkap yang akan menjadi tujuan redirect.'
                   : undefined
               }
+            />
+
+            <Input
+              id="link-code"
+              label="Kode Pendek"
+              type="text"
+              placeholder="contoh: skripsi26"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              error={codeError}
+              hint={!codeError ? 'Ubah kode shortlink. Hanya huruf, angka, - dan _.' : undefined}
             />
 
             <Input

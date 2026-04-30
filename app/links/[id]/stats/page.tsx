@@ -3,8 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { apiGetLink, ApiLink, deriveLinkStatus } from '@/app/lib/api'
-import { CHART_DATA } from '@/app/lib/data'
+import { apiGetLink, apiGetLinkStats, ApiLink, LinkSpecificStats, deriveLinkStatus } from '@/app/lib/api'
 import { getToken } from '@/app/lib/auth'
 import Button from '@/app/components/ui/Button'
 import StatCard from '@/app/components/ui/StatCard'
@@ -18,9 +17,9 @@ export default function StatsPage({
   const url_base = process.env.NEXT_PUBLIC_APP_URL
   const { id } = use(params)
   const router = useRouter()
-  const linkId = Number(id)
 
   const [link, setLink] = useState<ApiLink | null>(null)
+  const [stats, setStats] = useState<LinkSpecificStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -29,19 +28,25 @@ export default function StatsPage({
       router.push('/login')
       return
     }
-    fetchLink()
-  }, [linkId]) // eslint-disable-line react-hooks/exhaustive-deps
+    fetchData()
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function fetchLink() {
+  async function fetchData() {
     setLoading(true)
     setError('')
     try {
-      const res = await apiGetLink(linkId)
-      if (!res.success || !res.data) {
-        setError(res.message || 'Link tidak ditemukan.')
+      const [linkRes, statsRes] = await Promise.all([
+        apiGetLink(id),
+        apiGetLinkStats(id),
+      ])
+      if (!linkRes.success || !linkRes.data) {
+        setError(linkRes.message || 'Link tidak ditemukan.')
         return
       }
-      setLink(res.data)
+      setLink(linkRes.data)
+      if (statsRes.success && statsRes.data) {
+        setStats(statsRes.data)
+      }
     } catch {
       setError('Tidak dapat terhubung ke server.')
     } finally {
@@ -50,7 +55,6 @@ export default function StatsPage({
   }
 
   const status = link ? deriveLinkStatus(link) : 'nonaktif'
-  const maxClicks = Math.max(...CHART_DATA.map((d) => d.clicks))
 
   // Format lastClickedAt
   function formatLastClicked(val: string | null): string {
@@ -86,7 +90,7 @@ export default function StatsPage({
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-center justify-between gap-3">
             <span>{error}</span>
-            <Button variant="outline" size="sm" onClick={fetchLink}>
+            <Button variant="outline" size="sm" onClick={fetchData}>
               Coba lagi
             </Button>
           </div>
@@ -113,7 +117,7 @@ export default function StatsPage({
         <div className="grid grid-cols-2 gap-3">
           <StatCard
             label="Total Klik"
-            value={loading ? '—' : (link?.stats?.totalClicks ?? 0).toLocaleString()}
+            value={loading ? '—' : (stats?.totalClicks ?? link?.stats?.totalClicks ?? 0).toLocaleString()}
             description="Sejak link dibuat"
           />
           <StatCard
@@ -123,40 +127,62 @@ export default function StatsPage({
           />
         </div>
 
-        {/* Bar chart — static 7-day data (no endpoint for per-day stats) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            Klik 7 Hari Terakhir
-          </h2>
-          <div className="flex items-end gap-2 h-32">
-            {CHART_DATA.map((item) => {
-              const pct =
-                maxClicks > 0 ? (item.clicks / maxClicks) * 100 : 0
-              return (
-                <div
-                  key={item.day}
-                  className="flex flex-col items-center gap-1.5 flex-1"
-                >
-                  <div
-                    className="w-full flex flex-col justify-end"
-                    style={{ height: '6rem' }}
-                  >
-                    <div
-                      className="w-full bg-gray-900 rounded-sm transition-all"
-                      style={{
-                        height: `${pct}%`,
-                        minHeight: item.clicks > 0 ? '4px' : '0',
-                      }}
-                      title={`${item.day}: ${item.clicks} klik`}
-                    />
+        {/* Top Countries */}
+        {!loading && stats && stats.topCountries.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h2 className="text-sm font-medium text-gray-900 mb-3">Negara Teratas</h2>
+            <div className="flex flex-col gap-2">
+              {stats.topCountries.map((c) => {
+                const maxVal = stats.topCountries[0]?.count ?? 1
+                const pct = Math.round((c.count / maxVal) * 100)
+                return (
+                  <div key={c.name} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 w-8 flex-shrink-0">{c.name}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-gray-900 h-full rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-gray-900 w-8 text-right">{c.count}</span>
                   </div>
-                  <span className="text-xs text-gray-500">{item.clicks}</span>
-                  <span className="text-xs text-gray-400">{item.day}</span>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Top Browsers */}
+        {!loading && stats && stats.topBrowsers.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h2 className="text-sm font-medium text-gray-900 mb-3">Browser Teratas</h2>
+            <div className="flex flex-col gap-2">
+              {stats.topBrowsers.map((b) => {
+                const maxVal = stats.topBrowsers[0]?.count ?? 1
+                const pct = Math.round((b.count / maxVal) * 100)
+                return (
+                  <div key={b.name} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 w-20 flex-shrink-0 truncate">{b.name}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-gray-900 h-full rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-gray-900 w-8 text-right">{b.count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state for stats */}
+        {!loading && stats && stats.totalClicks === 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-sm text-gray-500">Belum ada klik yang tercatat untuk link ini.</p>
+          </div>
+        )}
 
         {/* Detail card */}
         {!loading && link && (

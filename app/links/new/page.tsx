@@ -12,11 +12,13 @@ import { getToken } from '@/app/lib/auth'
 export default function NewLinkPage() {
   const router = useRouter()
   const [url, setUrl] = useState('')
+  const [code, setCode] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [expiredAt, setExpiredAt] = useState('')
   const [isActive] = useState(true) // new links always start active
   const [urlError, setUrlError] = useState('')
+  const [codeError, setCodeError] = useState('')
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [createdCode, setCreatedCode] = useState<string | null>(null)
@@ -38,6 +40,12 @@ export default function NewLinkPage() {
       return false
     }
     setUrlError('')
+
+    if (code.trim() && !/^[a-zA-Z0-9_-]+$/.test(code.trim())) {
+      setCodeError('Hanya boleh huruf, angka, tanda hubung (-), dan garis bawah (_).')
+      return false
+    }
+    setCodeError('')
     return true
   }
 
@@ -54,6 +62,7 @@ export default function NewLinkPage() {
     setApiError('')
     try {
       const payload: Parameters<typeof apiCreateLink>[0] = { url }
+      if (code.trim()) payload.code = code.trim()
       if (title) payload.title = title
       if (description) payload.description = description
       if (expiredAt) payload.expiredAt = new Date(expiredAt).toISOString()
@@ -146,6 +155,17 @@ export default function NewLinkPage() {
             onChange={(e) => setUrl(e.target.value)}
             error={urlError}
             hint={!urlError ? 'URL lengkap yang akan menjadi tujuan redirect.' : undefined}
+          />
+
+          <Input
+            id="link-code"
+            label="Kode Pendek (Opsional)"
+            type="text"
+            placeholder="contoh: skripsi26"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            error={codeError}
+            hint={!codeError ? 'Biarkan kosong agar dibuat otomatis. Hanya huruf, angka, - dan _.' : undefined}
           />
 
           <Input

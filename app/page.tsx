@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import LandingNavbar from '@/app/components/LandingNavbar'
 import Button from '@/app/components/ui/Button'
+import { apiGetGlobalStats, GlobalOverviewStats } from '@/app/lib/api'
 
 const features = [
   {
@@ -38,12 +39,18 @@ const features = [
 export default function HomePage() {
   const [url, setUrl] = useState('')
   const [shortened, setShortened] = useState('')
+  const [overview, setOverview] = useState<GlobalOverviewStats | null>(null)
   const base_url = process.env.NEXT_PUBLIC_APP_URL
+
+  useEffect(() => {
+    apiGetGlobalStats()
+      .then((res) => { if (res.success && res.data) setOverview(res.data) })
+      .catch(() => {})
+  }, [])
 
   function handleShorten(e: React.FormEvent) {
     e.preventDefault()
     if (!url.trim()) return
-    const code = Math.random().toString(36).slice(2, 8)
     setShortened(`login terlebih dahulu`)
   }
 
@@ -166,24 +173,26 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Stats Section (GoITB influence) */}
+        {/* Stats Section */}
         <section className="border-b border-gray-200 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 py-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:divide-x divide-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center md:divide-x divide-gray-200">
               <div className="flex flex-col gap-1">
-                <span className="text-3xl font-medium text-gray-900">10rb+</span>
+                <span className="text-3xl font-medium text-gray-900">
+                  {overview ? overview.totalLinks.toLocaleString() : '—'}
+                </span>
                 <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Tautan Dibuat</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-3xl font-medium text-gray-900">2.5M+</span>
+                <span className="text-3xl font-medium text-gray-900">
+                  {overview ? overview.totalClicks.toLocaleString() : '—'}
+                </span>
                 <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Total Klik</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-3xl font-medium text-gray-900">5rb+</span>
-                <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Pengguna Aktif</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-3xl font-medium text-gray-900">99.9%</span>
+                <span className="text-3xl font-medium text-gray-900">
+                  {overview ? `${overview.uptimePercentage}%` : '—'}
+                </span>
                 <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Uptime Server</span>
               </div>
             </div>
