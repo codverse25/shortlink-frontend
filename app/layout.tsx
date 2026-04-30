@@ -1,33 +1,36 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import './globals.css'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const primaryFont = Plus_Jakarta_Sans({
+  variable: '--font-primary',
+  subsets: ['latin'],
+})
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const monoFont = JetBrains_Mono({
+  variable: '--font-mono-custom',
+  subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
-  title: "GO UNIRA - SHORTLINK",
-  description: "ShortLink unira",
-};
+  title: 'UNIRA URL Shortener - Persingkat URL Anda',
+  description:
+    'Buat tautan pendek dengan mudah, lacak statistik klik, dan kelola semua link Anda di satu tempat bersama Shortlink Unira.',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="id"
+      className={`${primaryFont.variable} ${monoFont.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-white text-gray-900 antialiased font-sans">
+        {children}
+      </body>
     </html>
-  );
+  )
 }
