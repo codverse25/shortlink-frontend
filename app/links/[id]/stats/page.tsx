@@ -4,6 +4,18 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiGetLink, apiGetLinkStats, ApiLink, LinkSpecificStats, deriveLinkStatus } from '@/app/lib/api'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import { getToken } from '@/app/lib/auth'
 import Button from '@/app/components/ui/Button'
 import StatCard from '@/app/components/ui/StatCard'
@@ -130,24 +142,30 @@ export default function StatsPage({
         {/* Top Countries */}
         {!loading && stats && stats.topCountries.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h2 className="text-sm font-medium text-gray-900 mb-3">Negara Teratas</h2>
-            <div className="flex flex-col gap-2">
-              {stats.topCountries.map((c) => {
-                const maxVal = stats.topCountries[0]?.count ?? 1
-                const pct = Math.round((c.count / maxVal) * 100)
-                return (
-                  <div key={c.name} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-8 flex-shrink-0">{c.name}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-gray-900 h-full rounded-full transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-gray-900 w-8 text-right">{c.count}</span>
-                  </div>
-                )
-              })}
+            <h2 className="text-sm font-medium text-gray-900 mb-4">Negara Teratas</h2>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.topCountries}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#111827"
+                    label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {stats.topCountries.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#111827', '#374151', '#6B7280', '#9CA3AF', '#D1D5DB'][index % 5]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '8px', fontSize: '12px' }}
+                    itemStyle={{ color: '#111827' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}
@@ -155,24 +173,24 @@ export default function StatsPage({
         {/* Top Browsers */}
         {!loading && stats && stats.topBrowsers.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <h2 className="text-sm font-medium text-gray-900 mb-3">Browser Teratas</h2>
-            <div className="flex flex-col gap-2">
-              {stats.topBrowsers.map((b) => {
-                const maxVal = stats.topBrowsers[0]?.count ?? 1
-                const pct = Math.round((b.count / maxVal) * 100)
-                return (
-                  <div key={b.name} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-20 flex-shrink-0 truncate">{b.name}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-gray-900 h-full rounded-full transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-gray-900 w-8 text-right">{b.count}</span>
-                  </div>
-                )
-              })}
+            <h2 className="text-sm font-medium text-gray-900 mb-4">Browser Teratas</h2>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.topBrowsers} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} allowDecimals={false} />
+                  <Tooltip
+                    cursor={{ fill: '#F3F4F6' }}
+                    contentStyle={{ borderRadius: '8px', fontSize: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="count" fill="#111827" radius={[4, 4, 0, 0]} barSize={40}>
+                    {stats.topBrowsers.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#111827', '#374151', '#6B7280', '#9CA3AF', '#D1D5DB'][index % 5]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

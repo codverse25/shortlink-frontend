@@ -7,20 +7,23 @@ import Input from '@/app/components/ui/Input'
 import Button from '@/app/components/ui/Button'
 import { apiLogin } from '@/app/lib/api'
 import { setToken, setUser } from '@/app/lib/auth'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState<{ email?: string; password?: string; api?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; password?: string; api?: string; turnstile?: string }>({})
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   function validate() {
-    const e: { email?: string; password?: string } = {}
+    const e: { email?: string; password?: string; turnstile?: string } = {}
     if (!email) e.email = 'Email wajib diisi.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       e.email = 'Format email tidak valid.'
     if (!password) e.password = 'Password wajib diisi.'
+    if (!turnstileToken) e.turnstile = 'Selesaikan verifikasi captcha.'
     return e
   }
 
@@ -34,7 +37,7 @@ export default function LoginPage() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await apiLogin(email, password)
+      const res = await apiLogin(email, password, turnstileToken)
       if (!res.success || !res.data) {
         setErrors({ api: res.message || 'Email atau password salah.' })
         return
@@ -105,6 +108,21 @@ export default function LoginPage() {
               error={errors.password}
               autoComplete="current-password"
             />
+            {errors.turnstile && (
+              <p className="text-xs text-red-500 mt-[-8px]">{errors.turnstile}</p>
+            )}
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setErrors((prev) => ({ ...prev, turnstile: undefined }))
+                }}
+                options={{
+                  theme: 'light',
+                }}
+              />
+            </div>
             <Button
               id="login-submit"
               type="submit"

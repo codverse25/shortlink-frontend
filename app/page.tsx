@@ -45,7 +45,7 @@ export default function HomePage() {
   useEffect(() => {
     apiGetGlobalStats()
       .then((res) => { if (res.success && res.data) setOverview(res.data) })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   function handleShorten(e: React.FormEvent) {
@@ -176,7 +176,13 @@ export default function HomePage() {
         {/* Stats Section */}
         <section className="border-b border-gray-200 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 py-12">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center md:divide-x divide-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:divide-x divide-gray-200">
+              <div className="flex flex-col gap-1">
+                <span className="text-3xl font-medium text-gray-900">
+                  {overview ? overview.totalUsers.toLocaleString() : '—'}
+                </span>
+                <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">Pengguna terdaftar</span>
+              </div>
               <div className="flex flex-col gap-1">
                 <span className="text-3xl font-medium text-gray-900">
                   {overview ? overview.totalLinks.toLocaleString() : '—'}

@@ -78,22 +78,24 @@ async function apiFetch<T>(
 
 export async function apiLogin(
   email: string,
-  password: string
+  password: string,
+  turnstileToken: string
 ): Promise<ApiResponse<LoginResponseData>> {
   return apiFetch<LoginResponseData>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, cfTurnstileResponse: turnstileToken }),
   })
 }
 
 export async function apiRegister(
   email: string,
   password: string,
-  name?: string
+  name?: string,
+  turnstileToken?: string
 ): Promise<ApiResponse<ApiUser>> {
   return apiFetch<ApiUser>('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password, ...(name ? { name } : {}) }),
+    body: JSON.stringify({ email, password, ...(name ? { name } : {}), cfTurnstileResponse: turnstileToken }),
   })
 }
 
@@ -159,6 +161,7 @@ export interface GlobalOverviewStats {
   totalLinks: number
   totalClicks: number
   uptimePercentage: number
+  totalUsers: number
 }
 
 export interface LinkSpecificStats {

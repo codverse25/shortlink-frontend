@@ -73,7 +73,7 @@ export default function DashboardPage() {
             href="/"
             className="text-sm font-medium text-gray-900 tracking-tight flex-shrink-0"
           >
-            Shortlink<span className="text-gray-400">.unira</span>
+            UNIRA<span className="text-gray-400"> URL Shortener</span>
           </Link>
 
           <div className="flex items-center gap-3 ml-auto">

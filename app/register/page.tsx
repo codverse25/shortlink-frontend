@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Input from '@/app/components/ui/Input'
 import Button from '@/app/components/ui/Button'
 import { apiRegister } from '@/app/lib/api'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -16,16 +17,19 @@ export default function RegisterPage() {
     email?: string
     password?: string
     api?: string
+    turnstile?: string
   }>({})
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   function validate() {
-    const e: { email?: string; password?: string } = {}
+    const e: { email?: string; password?: string; turnstile?: string } = {}
     if (!email) e.email = 'Email wajib diisi.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       e.email = 'Format email tidak valid.'
     if (!password) e.password = 'Password wajib diisi.'
     else if (password.length < 6) e.password = 'Password minimal 6 karakter.'
+    if (!turnstileToken) e.turnstile = 'Selesaikan verifikasi captcha.'
     return e
   }
 
@@ -39,7 +43,7 @@ export default function RegisterPage() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await apiRegister(email, password, name || undefined)
+      const res = await apiRegister(email, password, name || undefined, turnstileToken)
       if (!res.success) {
         // 409 conflict message from server
         setErrors({ api: res.message || 'Pendaftaran gagal. Coba lagi.' })
@@ -115,6 +119,21 @@ export default function RegisterPage() {
               hint={!errors.password ? 'Minimal 6 karakter.' : undefined}
               autoComplete="new-password"
             />
+            {errors.turnstile && (
+              <p className="text-xs text-red-500 mt-[-8px]">{errors.turnstile}</p>
+            )}
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setErrors((prev) => ({ ...prev, turnstile: undefined }))
+                }}
+                options={{
+                  theme: 'light',
+                }}
+              />
+            </div>
             <Button
               id="register-submit"
               type="submit"
