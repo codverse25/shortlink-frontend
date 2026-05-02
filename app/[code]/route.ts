@@ -12,22 +12,29 @@ export async function GET(
   let backendRes: Response
   try {
     const userAgent = _req.headers.get('user-agent') || ''
+    const connectingIp = _req.headers.get('cf-connecting-ip') || ''
     const forwardedFor = _req.headers.get('x-forwarded-for') || ''
     const realIp = _req.headers.get('x-real-ip') || ''
-    const connectingIp = _req.headers.get('cf-connecting-ip') || ''
+    const clientIp = connectingIp
+      || (forwardedFor ? forwardedFor.split(',')[0].trim() : '')
+      || realIp
+      || ''
 
     // Abaikan bot umum agar tidak dihitung sebagai klik
     const isBot = /bot|whatsapp|telegram|facebookexternalhit|slurp|spider|crawl|curl/i.test(userAgent)
 
-    const headers: Record<string, string> = { 
-      Accept: 'application/json' 
+    const headers: Record<string, string> = {
+      Accept: 'application/json'
     }
 
     if (userAgent) headers['user-agent'] = userAgent
-    if (forwardedFor) headers['x-forwarded-for'] = forwardedFor
-    if (realIp) headers['x-real-ip'] = realIp
+    // Selalu kirim IP client yang sudah di-resolve ke backend
+    if (clientIp) {
+      headers['x-forwarded-for'] = clientIp
+      headers['x-real-ip'] = clientIp
+    }
     if (connectingIp) headers['cf-connecting-ip'] = connectingIp
-    
+
     // Kirim instruksi ke backend untuk menghitung klik jika bukan bot
     if (!isBot) {
       headers['x-track-click'] = 'true'
