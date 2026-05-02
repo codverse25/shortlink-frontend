@@ -103,7 +103,7 @@ export default function DashboardPage() {
         {/* Page title */}
         <div>
           <h1 className="text-lg font-medium tracking-tight text-gray-900">
-            Dasborboard
+            Dashboard
           </h1>
           <p className="text-sm text-gray-500">
             Selamat datang kembali,{' '}
