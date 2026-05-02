@@ -67,7 +67,7 @@ export default function HomePage() {
 
               {/* Hero Content */}
               <div className="flex-1 space-y-8 text-center lg:text-left">
-                <div className="flex flex-col lg:flex-row items-center gap-4 justify-center lg:justify-start">
+                <div className="flex flex-col lg:flex-row items-center gap-4 justify-center lg:justify-start animate-fade-in-up">
                   <img src="/logo-48-th.png" alt="Dies Natalis ke-48 Universitas Madura" className="h-14 w-auto object-contain drop-shadow-sm" />
                   <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-900">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -75,18 +75,18 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <h1 className="text-5xl sm:text-6xl font-medium tracking-tight text-gray-900 leading-[1.1]">
+                <h1 className="text-5xl sm:text-6xl font-medium tracking-tight text-gray-900 leading-[1.1] animate-fade-in-up [animation-delay:100ms]">
                   Satu tautan pendek,<br />
                   <span className="text-gray-400">untuk semua kebutuhan.</span>
                 </h1>
 
-                <p className="text-lg text-gray-500 max-w-xl mx-auto lg:mx-0">
+                <p className="text-lg text-gray-500 max-w-xl mx-auto lg:mx-0 animate-fade-in-up [animation-delay:200ms]">
                   Buat tautan lebih rapi, mudah diingat, dan lacak setiap kliknya.
                   Platform URL shortener sederhana, cepat, dan profesional.
                 </p>
 
                 {/* URL Input Form */}
-                <div className="w-full max-w-lg mx-auto lg:mx-0">
+                <div className="w-full max-w-lg mx-auto lg:mx-0 animate-fade-in-up [animation-delay:300ms]">
                   <form
                     onSubmit={handleShorten}
                     className="flex flex-col sm:flex-row gap-2"
@@ -99,7 +99,7 @@ export default function HomePage() {
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                       required
-                      className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none transition-colors"
+                      className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all duration-300 ease-out-quart"
                     />
                     <Button type="submit" variant="primary" className="py-3 px-6 whitespace-nowrap justify-center">
                       Shorten
@@ -113,7 +113,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 pt-2">
+                <div className="flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 pt-2 animate-fade-in-up [animation-delay:400ms]">
                   <div className="flex items-center gap-1.5">
                     <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     Gratis
@@ -130,7 +130,7 @@ export default function HomePage() {
               </div>
 
               {/* Hero Illustration / Mockup */}
-              <div className="flex-1 w-full max-w-md lg:max-w-none relative hidden md:block">
+              <div className="flex-1 w-full max-w-md lg:max-w-none relative hidden md:block animate-scale-up [animation-delay:300ms]">
                 <div className="absolute inset-0 bg-gray-50 rounded-2xl transform rotate-3 scale-105 border border-gray-200"></div>
                 <div className="absolute inset-0 bg-gray-100/50 rounded-2xl transform -rotate-2 scale-100 border border-gray-200"></div>
                 <div className="relative bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
@@ -175,7 +175,7 @@ export default function HomePage() {
 
         {/* Stats Section */}
         <section className="border-b border-gray-200 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="max-w-6xl mx-auto px-4 py-12 animate-fade-in-up [animation-delay:500ms]">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:divide-x divide-gray-200">
               <div className="flex flex-col gap-1">
                 <span className="text-3xl font-medium text-gray-900">
@@ -220,10 +220,10 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature) => (
+            {features.map((feature, index) => (
               <div
                 key={feature.title}
-                className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col gap-5 hover:border-gray-300 transition-colors"
+                className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col gap-5 hover:-translate-y-1 hover:shadow-lg hover:border-gray-300 transition-all duration-300 ease-out-quart"
               >
                 <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900">
                   {feature.icon}
@@ -267,7 +267,9 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm text-gray-900">UNIRA URL Shortener</span>
             <span className="text-gray-300">|</span>
-            <span className="text-xs text-gray-500">Universitas Madura</span>
+            <Link href="https://unira.ac.id" target="_blank">
+              <span className="text-xs text-gray-500">Universitas Madura</span>
+            </Link>
           </div>
           <p className="text-xs text-gray-400 text-center md:text-left">
             © {new Date().getFullYear()} Informatika Universitas Madura. Hak cipta dilindungi undang-undang.
