@@ -32,6 +32,7 @@ export async function GET(
     if (clientIp) {
       headers['x-forwarded-for'] = clientIp
       headers['x-real-ip'] = clientIp
+      headers['x-unira-client-ip'] = clientIp
     }
     if (connectingIp) headers['cf-connecting-ip'] = connectingIp
 
