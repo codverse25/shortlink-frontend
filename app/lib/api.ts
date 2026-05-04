@@ -36,6 +36,7 @@ export interface ApiLink {
   createdAt: string
   expiredAt: string | null
   isActive: boolean
+  isProtected?: boolean
   stats: ApiLinkStat
 }
 
@@ -117,6 +118,7 @@ export interface CreateLinkPayload {
   title?: string
   description?: string
   expiredAt?: string
+  password?: string
 }
 
 export async function apiCreateLink(
@@ -135,6 +137,7 @@ export interface UpdateLinkPayload {
   title?: string
   description?: string
   expiredAt?: string | null
+  password?: string
 }
 
 export async function apiUpdateLink(

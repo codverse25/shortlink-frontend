@@ -16,6 +16,7 @@ export default function NewLinkPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [expiredAt, setExpiredAt] = useState('')
+  const [password, setPassword] = useState('')
   const [isActive] = useState(true) // new links always start active
   const [urlError, setUrlError] = useState('')
   const [codeError, setCodeError] = useState('')
@@ -66,6 +67,7 @@ export default function NewLinkPage() {
       if (title) payload.title = title
       if (description) payload.description = description
       if (expiredAt) payload.expiredAt = new Date(expiredAt).toISOString()
+      if (password) payload.password = password
 
       const res = await apiCreateLink(payload)
       if (!res.success || !res.data) {
@@ -201,6 +203,16 @@ export default function NewLinkPage() {
             value={expiredAt}
             onChange={(e) => setExpiredAt(e.target.value)}
             hint="Biarkan kosong jika tidak ada batas waktu."
+          />
+
+          <Input
+            id="link-password"
+            label="Password (Opsional)"
+            type="text"
+            placeholder="Masukkan password untuk melindungi link"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            hint="Jika diisi, pengunjung harus memasukkan password untuk mengakses link."
           />
 
           <div className="flex flex-col gap-2 pt-1">

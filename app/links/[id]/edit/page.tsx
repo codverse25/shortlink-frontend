@@ -24,6 +24,7 @@ export default function EditLinkPage({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [expiredAt, setExpiredAt] = useState('')
+  const [password, setPassword] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [urlError, setUrlError] = useState('')
   const [codeError, setCodeError] = useState('')
@@ -105,6 +106,7 @@ export default function EditLinkPage({
       payload.expiredAt = expiredAt
         ? new Date(expiredAt).toISOString()
         : null
+      if (password) payload.password = password
 
       const res = await apiUpdateLink(id, payload)
       if (!res.success) {
@@ -221,7 +223,14 @@ export default function EditLinkPage({
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs text-gray-500 mb-0.5">URL Singkat</p>
-              <p className="font-mono text-sm text-gray-900">{previewUrl}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-mono text-sm text-gray-900">{previewUrl}</p>
+                {link.isProtected && (
+                  <span title="Dilindungi Password" className="text-gray-400 text-xs bg-gray-100 px-1.5 py-0.5 rounded-md border border-gray-200 cursor-help">
+                    🔒 Protected
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Link href={`/links/${id}/stats`}>
@@ -328,6 +337,16 @@ export default function EditLinkPage({
               value={expiredAt}
               onChange={(e) => setExpiredAt(e.target.value)}
               hint="Biarkan kosong jika tidak ada batas waktu."
+            />
+
+            <Input
+              id="link-password"
+              label="Password"
+              type="text"
+              placeholder="Ubah atau tambah password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              hint={link?.isProtected ? 'Kosongkan jika tidak ingin mengubah password.' : 'Jika diisi, pengunjung harus memasukkan password untuk mengakses link.'}
             />
 
             <div className="flex flex-col gap-2 pt-1">

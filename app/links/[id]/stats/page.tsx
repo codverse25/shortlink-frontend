@@ -246,6 +246,16 @@ export default function StatsPage({
                   {link.code}
                 </span>
               </div>
+              <div className="flex justify-between gap-3 py-2">
+                <span className="text-xs text-gray-500">Perlindungan Password</span>
+                <span className="text-xs font-medium text-gray-900">
+                  {link.isProtected ? (
+                    <span className="flex items-center gap-1 text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded-md border border-gray-200">
+                      🔒 Aktif
+                    </span>
+                  ) : 'Tidak Aktif'}
+                </span>
+              </div>
             </div>
           </div>
         )}

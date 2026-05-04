@@ -30,9 +30,14 @@ export default function LinkRow({ link }: LinkRowProps) {
 
       {/* Title & code */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">
-          {link.title ?? '(tanpa judul)'}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-gray-900 truncate">
+            {link.title ?? '(tanpa judul)'}
+          </p>
+          {link.isProtected && (
+            <span title="Dilindungi Password" className="text-[10px] text-gray-400 cursor-help">🔒</span>
+          )}
+        </div>
         <p className="text-xs text-gray-500 font-mono">
           {url_base}/{link.code}
         </p>
